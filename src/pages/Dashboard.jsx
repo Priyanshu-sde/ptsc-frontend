@@ -1,0 +1,381 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Users, 
+  Calendar, 
+  Image, 
+  RefreshCw, 
+  Check, 
+  X, 
+  Upload,
+  Trash2,
+  Edit,
+  Plus,
+  Clock
+} from 'lucide-react';
+import api from '../utils/api';
+import { toast } from 'react-toastify';
+import Loader from '../components/Loader';
+import CreateEventForm from '../components/CreateEventForm';
+
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState('pending');
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    if (activeTab === 'pending') {
+      fetchPendingUsers();
+    } else if (activeTab === 'events') {
+      fetchEvents();
+    }
+  }, [activeTab]);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/v1/fetchEvents');
+      const payload = response?.data;
+      const normalized = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.events)
+        ? payload.events
+        : [];
+      setEvents(normalized);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast.error('Failed to load events');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPendingUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/v1/getallpendings');
+      setPendingUsers(response.data || []);
+    } catch (error) {
+      console.error('Error fetching pending users:', error);
+      toast.error('Failed to load pending users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (userId) => {
+    try {
+      await api.post(`/v1/approveUser/${userId}`);
+      toast.success('User approved successfully');
+      fetchPendingUsers();
+    } catch (error) {
+      console.error('Error approving user:', error);
+      toast.error('Failed to approve user');
+    }
+  };
+
+  const handleDeny = async (userId) => {
+    try {
+      await api.post(`/v1/deniedUser/${userId}`);
+      toast.success('User denied');
+      fetchPendingUsers();
+    } catch (error) {
+      console.error('Error denying user:', error);
+      toast.error('Failed to deny user');
+    }
+  };
+
+  const handleRefreshLeaderboard = async () => {
+    try {
+      setRefreshing(true);
+      await api.post('/leaderboard/refresh');
+      toast.success('Leaderboard refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing leaderboard:', error);
+      toast.error('Failed to refresh leaderboard');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleUpdateLeaderboard = async () => {
+    try {
+      setRefreshing(true);
+      await api.post('/leaderboard/update');
+      toast.success('Leaderboard updated successfully');
+    } catch (error) {
+      console.error('Error updating leaderboard:', error);
+      toast.error('Failed to update leaderboard');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const tabs = [
+    { id: 'pending', label: 'Pending Users', icon: Users },
+    { id: 'events', label: 'Manage Events', icon: Calendar },
+    { id: 'media', label: 'Manage Media', icon: Image },
+    { id: 'leaderboard', label: 'Leaderboard', icon: RefreshCw },
+  ];
+
+  return (
+    <div className="min-h-screen pt-24 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold font-display mb-2">
+            <span className="text-gradient">Admin Dashboard</span>
+          </h1>
+          <p className="text-gray-400">Manage club content and user registrations</p>
+        </motion.div>
+
+        {/* Tabs */}
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex space-x-2 min-w-max">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                  activeTab === tab.id
+                    ? 'bg-primary text-white'
+                    : 'glass-effect text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <tab.icon className="w-5 h-5" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card"
+        >
+          {/* Pending Users Tab */}
+          {activeTab === 'pending' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Pending User Approvals</h2>
+                <button
+                  onClick={fetchPendingUsers}
+                  className="btn-secondary flex items-center space-x-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              {loading ? (
+                <Loader />
+              ) : pendingUsers.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Name</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Email</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Roll No</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Branch</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-400">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingUsers.map((user) => (
+                        <tr key={user._id} className="border-b border-white/5 hover:bg-white/5">
+                          <td className="px-4 py-4 text-white">
+                            {user.firstName} {user.lastName}
+                          </td>
+                          <td className="px-4 py-4 text-gray-400">{user.email}</td>
+                          <td className="px-4 py-4 text-gray-400">{user.rollNo}</td>
+                          <td className="px-4 py-4 text-gray-400">{user.branch}</td>
+                          <td className="px-4 py-4">
+                            <div className="flex justify-center space-x-2">
+                              <button
+                                onClick={() => handleApprove(user._id)}
+                                className="p-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 text-green-400 transition-all"
+                                title="Approve"
+                              >
+                                <Check className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeny(user._id)}
+                                className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-all"
+                                title="Deny"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400">No pending user approvals</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Events Tab */}
+          {activeTab === 'events' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Manage Events</h2>
+                <button 
+                  onClick={() => setShowCreateEvent(true)}
+                  className="btn-primary flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Event</span>
+                </button>
+              </div>
+              
+              {loading ? (
+                <Loader />
+              ) : events.length > 0 ? (
+                <div className="space-y-4">
+                  {events.map((event) => (
+                    <div key={event._id} className="glass-effect rounded-lg p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
+                          <p className="text-gray-400 text-sm mb-3">{event.description}</p>
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex items-center text-gray-400">
+                              <Calendar className="w-4 h-4 mr-2 text-primary" />
+                              {new Date(event.date).toLocaleDateString()}
+                            </div>
+                            {event.time && (
+                              <div className="flex items-center text-gray-400">
+                                <Clock className="w-4 h-4 mr-2 text-primary" />
+                                {event.time}
+                              </div>
+                            )}
+                            {event.useCustomForm && (
+                              <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">
+                                Custom Form
+                              </span>
+                            )}
+                          </div>
+                          {event.registrationFields && event.registrationFields.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs text-gray-500 mb-1">Additional Fields:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {event.registrationFields.map((field, idx) => (
+                                  <span key={idx} className="text-xs px-2 py-1 rounded bg-white/5 text-gray-400">
+                                    {field.label} {field.required && '*'}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex space-x-2 ml-4">
+                          <button className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all">
+                            <Edit className="w-4 h-4 text-blue-400" />
+                          </button>
+                          <button className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all">
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Calendar className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400">No events found. Create your first event!</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Media Tab */}
+          {activeTab === 'media' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Manage Media</h2>
+                <button className="btn-primary flex items-center space-x-2">
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Media</span>
+                </button>
+              </div>
+              <div className="text-center py-12">
+                <Image className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-400">Media management interface coming soon</p>
+              </div>
+            </div>
+          )}
+
+          {/* Leaderboard Tab */}
+          {activeTab === 'leaderboard' && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-6">Leaderboard Management</h2>
+              <div className="space-y-4">
+                <div className="glass-effect rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-white mb-2">Refresh Leaderboard</h3>
+                  <p className="text-gray-400 mb-4">
+                    Fetch latest ratings from all platforms and update the leaderboard
+                  </p>
+                  <button
+                    onClick={handleRefreshLeaderboard}
+                    disabled={refreshing}
+                    className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    <span>{refreshing ? 'Refreshing...' : 'Refresh Now'}</span>
+                  </button>
+                </div>
+
+                <div className="glass-effect rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-white mb-2">Update Leaderboard</h3>
+                  <p className="text-gray-400 mb-4">
+                    Recalculate scores and update rankings
+                  </p>
+                  <button
+                    onClick={handleUpdateLeaderboard}
+                    disabled={refreshing}
+                    className="btn-secondary flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    <span>{refreshing ? 'Updating...' : 'Update Now'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Create Event Modal */}
+      {showCreateEvent && (
+        <CreateEventForm
+          onClose={() => setShowCreateEvent(false)}
+          onSuccess={() => {
+            setShowCreateEvent(false);
+            fetchEvents();
+          }}
+        />
+      )}
+    </div>
+  );
+}
