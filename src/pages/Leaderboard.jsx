@@ -34,11 +34,11 @@ export default function Leaderboard() {
           ? payload.map(entry => ({
               firstName: entry.name?.split(' ')[0] || entry.name || '',
               lastName: entry.name?.split(' ').slice(1).join(' ') || '',
-              rollNo: entry.rollNo || 'N/A',
               totalScore: entry.score || 0,
-              leetcodeRating: entry.leetcode || 0,
-              codechefRating: entry.codechef || 0,
-              codeforcesRating: entry.codeforces || 0,
+              leetcodeRating: entry.leetcodeSolved || 0,
+              codechefRating: entry.codechefRating || 0,
+              codeforcesRating: entry.codeforcesRating || 0,
+              gfgRating: entry.gfgSolved || 0,
             }))
           : Array.isArray(payload?.data)
           ? payload.data
