@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Lock, Mail } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [credentials, setCredentials] = useState({
@@ -12,7 +12,14 @@ export default function Login() {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setCredentials({
@@ -26,17 +33,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const result = await login(credentials.email, credentials.password);
-      
-      if (result.success) {
-        toast.success('Login successful!');
-        navigate('/dashboard');
-      } else {
-        toast.error(result.message || 'Login failed. Please check your credentials.');
-      }
+      await login(credentials);
+      toast.success('Login successful!');
+      // Navigation will happen automatically via useEffect when isAuthenticated changes
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -116,11 +119,17 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
               <p className="text-gray-400 text-sm">
                 Forgot your password?{' '}
                 <a href="#" className="text-primary hover:text-primary-light transition-colors">
                   Contact Admin
+                </a>
+              </p>
+              <p className="text-gray-400 text-sm">
+                New here?{' '}
+                <a href="/signup" className="text-primary hover:text-primary-light transition-colors">
+                  Create an account
                 </a>
               </p>
             </div>

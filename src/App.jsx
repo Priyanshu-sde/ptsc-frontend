@@ -10,11 +10,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Pages
 import Landing from './pages/Landing';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
+import EventRegister from './pages/EventRegister';
 import Leaderboard from './pages/Leaderboard';
 import Team from './pages/Team';
 import Media from './pages/Media';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -28,11 +31,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/events/:id/register" element={<EventRegister />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/team" element={<Team />} />
             <Route path="/media" element={<Media />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route
               path="/dashboard"
               element={

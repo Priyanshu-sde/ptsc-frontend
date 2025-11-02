@@ -18,10 +18,16 @@ export const logout = async () => {
   }
 };
 
-export const checkAuth = () => {
-  // Check if user is authenticated by checking cookies
-  // This is a simple check - you might want to add more robust validation
-  return document.cookie.includes('token');
+export const checkAuth = async () => {
+  try {
+    // Try to fetch current user to verify authentication
+    const response = await api.get('/v1/me');
+    return response.data ? true : false;
+  } catch (error) {
+    // If API call fails, check localStorage as fallback
+    const role = localStorage.getItem('userRole');
+    return role && role !== 'guest';
+  }
 };
 
 export const getUserRole = () => {

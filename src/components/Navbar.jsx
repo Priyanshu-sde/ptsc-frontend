@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Code2, LogOut } from 'lucide-react';
+// Use the same AuthContext provider that wraps the app (src/context/AuthContext)
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -89,12 +90,20 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="btn-primary ml-2"
-              >
-                Login
-              </Link>
+              <div className="flex items-center space-x-2 ml-2">
+                <Link
+                  to="/login"
+                  className="btn-secondary"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="btn-primary"
+                >
+                  Sign Up
+                </Link>
+              </div>
             )}
           </div>
 
@@ -153,13 +162,22 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="block text-center btn-primary"
-                >
-                  Login
-                </Link>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="block text-center btn-secondary"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setIsOpen(false)}
+                    className="block text-center btn-primary"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
               )}
             </div>
           </motion.div>

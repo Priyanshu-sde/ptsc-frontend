@@ -1,10 +1,8 @@
 import { motion } from 'framer-motion';
-import { Calendar, Clock, ExternalLink, Trophy } from 'lucide-react';
-import { useState } from 'react';
-import EventRegistrationForm from './EventRegistrationForm';
+import { Calendar, Clock, Trophy } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function EventCard({ event, isPast = false }) {
-  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -54,36 +52,19 @@ export default function EventCard({ event, isPast = false }) {
 
         {/* Action Buttons */}
         <div className="pt-4 flex gap-3">
+          <Link
+            to={`/events/${event._id}`}
+            className="flex-1 btn-secondary text-center"
+          >
+            View Details
+          </Link>
           {!isPast && (
-            <>
-              {event.useCustomForm ? (
-                <button
-                  onClick={() => setShowRegistrationForm(true)}
-                  className="flex-1 btn-primary text-center flex items-center justify-center space-x-2"
-                >
-                  <span>Register Now</span>
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              ) : event.googleFormLink ? (
-                <a
-                  href={event.googleFormLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 btn-primary text-center flex items-center justify-center space-x-2"
-                >
-                  <span>Register Now</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              ) : (
-                <button
-                  onClick={() => setShowRegistrationForm(true)}
-                  className="flex-1 btn-primary text-center flex items-center justify-center space-x-2"
-                >
-                  <span>Register Now</span>
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              )}
-            </>
+            <Link
+              to={`/events/${event._id}/register`}
+              className="flex-1 btn-primary text-center"
+            >
+              Register Now
+            </Link>
           )}
           {isPast && event.resultLink && (
             <a
@@ -98,17 +79,6 @@ export default function EventCard({ event, isPast = false }) {
           )}
         </div>
       </div>
-
-      {/* Registration Form Modal */}
-      {showRegistrationForm && (
-        <EventRegistrationForm
-          event={event}
-          onClose={() => setShowRegistrationForm(false)}
-          onSuccess={() => {
-            setShowRegistrationForm(false);
-          }}
-        />
-      )}
     </motion.div>
   );
 }

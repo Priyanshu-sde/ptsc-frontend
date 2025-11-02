@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, User, Phone, Hash, Users } from 'lucide-react';
+import { User, Phone, Hash, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 
@@ -87,8 +87,15 @@ export default function EventRegistrationForm({ event, onClose, onSuccess }) {
         ...dynamicFields,
       };
 
-      await api.post('/v1/registerEvent', registrationData);
+      const { data } = await api.post('/v1/registerEvent', registrationData);
       toast.success('Registration successful!');
+      if (data?.whatsappGroupLink) {
+        // lightweight prompt to join the WhatsApp group
+        const join = window.confirm('Join the WhatsApp group for further updates?');
+        if (join) {
+          window.open(data.whatsappGroupLink, '_blank', 'noopener,noreferrer');
+        }
+      }
       if (onSuccess) onSuccess();
       if (onClose) onClose();
     } catch (error) {
@@ -100,35 +107,14 @@ export default function EventRegistrationForm({ event, onClose, onSuccess }) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gradient font-display">
-              Register for Event
-            </h2>
-            <p className="text-gray-400 mt-1">{event.title}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-gradient font-display">
+          Register for Event
+        </h2>
+        <p className="text-gray-400 mt-1">{event.title}</p>
+      </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -276,8 +262,7 @@ export default function EventRegistrationForm({ event, onClose, onSuccess }) {
               {loading ? 'Registering...' : 'Register'}
             </button>
           </div>
-        </form>
-      </motion.div>
-    </motion.div>
+    </form>
+  </div>
   );
 }
