@@ -35,7 +35,6 @@ export default function LeaderboardTable({ data }) {
           <tr className="border-b border-white/10">
             <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Rank</th>
             <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Name</th>
-            <th className="px-4 py-4 text-left text-sm font-semibold text-gray-400">Branch</th>
             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-400">Score</th>
             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-400">LeetCode</th>
             <th className="px-4 py-4 text-center text-sm font-semibold text-gray-400">CodeChef</th>
@@ -62,10 +61,9 @@ export default function LeaderboardTable({ data }) {
                   <p className="font-semibold text-white">
                     {entry.firstName} {entry.lastName}
                   </p>
-                  <p className="text-sm text-gray-400">{entry.rollNo}</p>
                 </div>
               </td>
-              <td className="px-4 py-4 text-gray-300">{entry.branch}</td>
+              {/* <td className="px-4 py-4 text-gray-300">{entry.branch}</td> */}
               <td className="px-4 py-4 text-center">
                 <span className="inline-block px-3 py-1 rounded-full bg-primary/20 text-primary font-bold">
                   {entry.totalScore || 0}
@@ -81,7 +79,7 @@ export default function LeaderboardTable({ data }) {
                 {entry.codeforcesRating || '-'}
               </td>
               <td className="px-4 py-4 text-center text-gray-300">
-                {entry.gfgScore || '-'}
+                {entry.gfgRating || '-'}
               </td>
             </motion.tr>
           ))}
