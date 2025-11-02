@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, ChevronLeft, ChevronRight, Search, UserPlus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import api from '../utils/api';
 import LeaderboardTable from '../components/LeaderboardTable';
 import Loader, { TableSkeleton } from '../components/Loader';
 import { toast } from 'react-toastify';
+import AddToLeaderboardForm from '../components/AddToLeaderboardForm';
 
 export default function Leaderboard() {
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -13,13 +14,10 @@ export default function Leaderboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
   const limit = 10;
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [currentPage]);
-
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/leaderboard?page=${currentPage}&limit=${limit}`);
@@ -53,6 +51,15 @@ export default function Leaderboard() {
     } finally {
       setLoading(false);
     }
+  }, [currentPage, limit]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  const handleFormSuccess = () => {
+    setShowAddForm(false);
+    fetchLeaderboard(); // Refresh the leaderboard data
   };
 
   const filteredData = leaderboardData.filter((entry) => {
@@ -63,7 +70,7 @@ export default function Leaderboard() {
   });
 
   // Prepare data for chart (top 10)
-  const chartData = filteredData.slice(0, 10).map((entry, index) => ({
+  const chartData = filteredData.slice(0, 10).map((entry) => ({
     name: `${entry.firstName} ${entry.lastName}`,
     score: entry.totalScore || 0,
     leetcode: entry.leetcodeRating || 0,
@@ -88,9 +95,21 @@ export default function Leaderboard() {
           <h1 className="text-4xl md:text-5xl font-bold font-display mb-4">
             <span className="text-gradient">Leaderboard</span>
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
             Top performers across multiple competitive programming platforms
           </p>
+          
+          {/* Add to Leaderboard Button */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            onClick={() => setShowAddForm(true)}
+            className="btn-primary inline-flex items-center gap-2 shadow-lg shadow-primary/20"
+          >
+            <UserPlus className="w-5 h-5" />
+            Add Yourself to Leaderboard
+          </motion.button>
         </motion.div>
 
         {/* Search Bar */}
@@ -198,6 +217,33 @@ export default function Leaderboard() {
             </div>
           )}
         </motion.div>
+
+        {/* Add to Leaderboard Modal */}
+        <AnimatePresence>
+          {showAddForm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+              onClick={() => setShowAddForm(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-4xl glass-effect rounded-2xl p-6 md:p-8 border-2 border-primary/30 shadow-2xl"
+              >
+                <AddToLeaderboardForm
+                  onClose={() => setShowAddForm(false)}
+                  onSuccess={handleFormSuccess}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
