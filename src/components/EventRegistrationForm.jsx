@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Phone, Hash, Users } from 'lucide-react';
+import { User, Phone, Hash, Users, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 
 export default function EventRegistrationForm({ event, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [whatsappLink, setWhatsappLink] = useState('');
   
   // Default fields
   const [formData, setFormData] = useState({
@@ -89,15 +91,9 @@ export default function EventRegistrationForm({ event, onClose, onSuccess }) {
 
       const { data } = await api.post('/v1/registerEvent', registrationData);
       toast.success('Registration successful!');
-      if (data?.whatsappGroupLink) {
-        // lightweight prompt to join the WhatsApp group
-        const join = window.confirm('Join the WhatsApp group for further updates?');
-        if (join) {
-          window.open(data.whatsappGroupLink, '_blank', 'noopener,noreferrer');
-        }
-      }
+      setWhatsappLink(data?.whatsappGroupLink || event.whatsappGroupLink || '');
+      setSubmitted(true);
       if (onSuccess) onSuccess();
-      if (onClose) onClose();
     } catch (error) {
       console.error('Error registering for event:', error);
       toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
@@ -105,6 +101,38 @@ export default function EventRegistrationForm({ event, onClose, onSuccess }) {
       setLoading(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="text-center px-4 py-8">
+        <div className="flex justify-center mb-4">
+          <CheckCircle2 className="w-12 h-12 text-green-400" />
+        </div>
+        <h3 className="text-2xl font-bold text-white mb-2">Form submitted successfully</h3>
+        <p className="text-gray-400 mb-6">Thank you for registering for {event.title}. We’ll share updates soon.</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {whatsappLink ? (
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary inline-flex items-center justify-center"
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Join WhatsApp Group
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary"
+          >
+            Back to Event
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

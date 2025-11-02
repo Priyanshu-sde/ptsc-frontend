@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Plus, Trash2, Calendar, Clock, Link as LinkIcon } from 'lucide-react';
+import { X, Plus, Trash2, Calendar, Clock, Link as LinkIcon, MessageSquare, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 
@@ -12,6 +12,8 @@ export default function CreateEventForm({ onClose, onSuccess }) {
     date: '',
     time: '',
     googleFormLink: '',
+  whatsappGroupLink: '',
+  coverImageUrl: '',
     useCustomForm: false,
   });
 
@@ -230,6 +232,40 @@ export default function CreateEventForm({ onClose, onSuccess }) {
           {/* Registration Settings */}
           <div className="border-t border-white/10 pt-6">
             <h3 className="text-lg font-semibold text-white mb-4">Registration Settings</h3>
+
+            {/* Links & Media */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>WhatsApp Group Link</span>
+                  </div>
+                </label>
+                <input
+                  type="url"
+                  value={formData.whatsappGroupLink}
+                  onChange={(e) => handleChange('whatsappGroupLink', e.target.value)}
+                  placeholder="https://chat.whatsapp.com/..."
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <div className="flex items-center space-x-2">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>Cover Image URL</span>
+                  </div>
+                </label>
+                <input
+                  type="url"
+                  value={formData.coverImageUrl}
+                  onChange={(e) => handleChange('coverImageUrl', e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 glass-effect rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
+            </div>
             
             <div className="mb-4">
               <label className="flex items-center space-x-3 cursor-pointer">

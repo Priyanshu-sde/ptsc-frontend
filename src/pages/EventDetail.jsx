@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, ExternalLink, Link as LinkIcon, BookOpen } from 'lucide-react';
+import { Calendar, Clock, ExternalLink, Link as LinkIcon, BookOpen, MessageSquare } from 'lucide-react';
 import api from '../utils/api';
 import Loader from '../components/Loader';
 import { toast } from 'react-toastify';
@@ -53,6 +53,11 @@ export default function EventDetail() {
     <div className="min-h-screen pt-24 pb-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          {event.coverImageUrl && (
+            <div className="mb-4 overflow-hidden rounded-xl border border-white/10">
+              <img src={event.coverImageUrl} alt={event.title} className="w-full h-64 object-cover" />
+            </div>
+          )}
           <h1 className="text-4xl font-bold font-display mb-2">
             <span className="text-gradient">{event.title}</span>
           </h1>
@@ -98,6 +103,17 @@ export default function EventDetail() {
                 <p className="text-xs text-gray-500 mt-2 flex items-center">
                   <LinkIcon className="w-3 h-3 mr-1" /> External Google Form
                 </p>
+              )}
+              {event.whatsappGroupLink && (
+                <a
+                  href={event.whatsappGroupLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary w-full mt-3 inline-flex items-center justify-center"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Join WhatsApp Group
+                </a>
               )}
             </div>
           </div>

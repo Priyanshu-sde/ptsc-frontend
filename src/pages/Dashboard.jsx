@@ -19,6 +19,7 @@ import Loader from '../components/Loader';
 import CreateEventForm from '../components/CreateEventForm';
 import { useAuth } from '../context/AuthContext';
 import MemberAdminForm from '../components/MemberAdminForm';
+import EventEditForm from '../components/EventEditForm';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -36,6 +37,8 @@ export default function Dashboard() {
   const [updatingUserId, setUpdatingUserId] = useState(null);
   const [registrations, setRegistrations] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState('');
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'users') {
@@ -307,6 +310,22 @@ export default function Dashboard() {
                               >
                                 {updatingUserId === u._id ? 'Saving...' : 'Save'}
                               </button>
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm('Delete this user? This action cannot be undone.')) return;
+                                  try {
+                                    await api.delete(`/v1/deleteUser/${u._id}`);
+                                    toast.success('User deleted');
+                                    fetchUsers();
+                                  } catch (error) {
+                                    console.error('Delete user error:', error);
+                                    toast.error(error.response?.data?.message || 'Failed to delete user');
+                                  }
+                                }}
+                                className="ml-2 btn-secondary text-sm"
+                              >
+                                Delete
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -378,10 +397,26 @@ export default function Dashboard() {
                           )}
                         </div>
                         <div className="flex space-x-2 ml-4">
-                          <button className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all">
+                          <button
+                            className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all"
+                            onClick={() => { setEditingEvent(event); setShowEditEvent(true); }}
+                          >
                             <Edit className="w-4 h-4 text-blue-400" />
                           </button>
-                          <button className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all">
+                          <button
+                            className="p-2 rounded-lg glass-effect hover:bg-white/10 transition-all"
+                            onClick={async () => {
+                              if (!window.confirm('Delete this event?')) return;
+                              try {
+                                await api.delete(`/v1/deleteEvent/${event._id}`);
+                                toast.success('Event deleted');
+                                fetchEvents();
+                              } catch (error) {
+                                console.error('Delete event error:', error);
+                                toast.error(error.response?.data?.message || 'Failed to delete event');
+                              }
+                            }}
+                          >
                             <Trash2 className="w-4 h-4 text-red-400" />
                           </button>
                         </div>
@@ -588,6 +623,17 @@ export default function Dashboard() {
           onClose={() => setShowCreateEvent(false)}
           onSuccess={() => {
             setShowCreateEvent(false);
+            fetchEvents();
+          }}
+        />
+      )}
+
+      {showEditEvent && editingEvent && (
+        <EventEditForm
+          event={editingEvent}
+          onClose={() => setShowEditEvent(false)}
+          onSuccess={() => {
+            setShowEditEvent(false);
             fetchEvents();
           }}
         />
